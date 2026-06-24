@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Toolkit | STAT C1000</title>
+<style>
+  :root{
+    --bg:#FBF7EF;
+    --surface:#FFFFFF;
+    --surface-2:#F3ECDD;
+    --ink:#2B2421;
+    --ink-soft:#5B5048;
+    --teal:#1F6E6B;
+    --teal-dark:#15504D;
+    --teal-soft:#DCEAE8;
+    --gold:#E8A23D;
+    --gold-soft:#FCE7B8;
+    --coral:#E2603F;
+    --coral-soft:#FBDDD2;
+    --sage:#5C8A66;
+    --sage-soft:#E1EEE0;
+    --border:#E4D9C2;
+    --radius:14px;
+    --radius-sm:8px;
+    --font-ui: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+    --shadow: 0 2px 10px rgba(43,36,33,0.07), 0 1px 2px rgba(43,36,33,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-ui);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+  a{color:var(--teal-dark);}
+  :focus-visible{outline:3px solid var(--teal-dark); outline-offset:2px; border-radius:4px;}
+
+  .wrap{max-width:980px; margin:0 auto; padding:0 16px 64px;}
+
+  header.app-header{
+    background:linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    color:#fff;
+    padding:22px 16px 18px;
+    border-bottom:5px solid var(--gold);
+  }
+  .header-inner{max-width:980px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:14px;}
+  .title-block h1{margin:0 0 4px; font-size:1.5rem; font-weight:800; letter-spacing:-0.01em;}
+  .title-block p{margin:0; font-size:0.92rem; color:#E8F2F1; max-width:46ch;}
+  .course-badge{
+    display:inline-block; margin-top:8px; font-family:var(--font-mono); font-size:0.75rem;
+    background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.35);
+    padding:3px 9px; border-radius:999px; letter-spacing:0.03em;
+  }
+
+  .mode-toggle{
+    display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.3); border-radius:999px; padding:4px;
+    flex-shrink:0;
+  }
+  .mode-toggle button{
+    font-family:var(--font-ui); font-weight:700; font-size:0.82rem; border:none; cursor:pointer;
+    padding:7px 14px; border-radius:999px; background:transparent; color:#fff; opacity:0.75;
+    transition:background 150ms, opacity 150ms;
+  }
+  .mode-toggle button[aria-pressed="true"]{background:var(--gold); color:#3a2a08; opacity:1;}
+
+  nav.tabs{
+    max-width:980px; margin:0 auto; display:flex; gap:6px; padding:14px 16px 0;
+    flex-wrap:wrap;
+  }
+  nav.tabs button{
+    font-family:var(--font-ui); font-weight:700; font-size:0.92rem; cursor:pointer;
+    background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--border);
+    padding:10px 16px; border-radius:10px 10px 0 0; border-bottom:none;
+    transition:background 150ms, color 150ms;
+  }
+  nav.tabs button[aria-selected="true"]{background:var(--surface); color:var(--teal-dark); box-shadow:var(--shadow);}
+  nav.tabs button:hover{color:var(--teal-dark);}
+
+  main{padding-top:14px;}
+  section.panel{display:none;}
+  section.panel.active{display:block;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px 20px; margin-bottom:16px;
+  }
+  .card h2{margin:0 0 6px; font-size:1.15rem; color:var(--teal-dark);}
+  .card .sub{color:var(--ink-soft); font-size:0.92rem; margin:0 0 14px;}
+
+  /* Probability language scale */
+  .scale-wrap{margin:10px 0 4px;}
+  .scale-bar{
+    position:relative; height:8px; border-radius:999px;
+    background:linear-gradient(90deg, var(--coral) 0%, var(--gold) 50%, var(--sage) 100%);
+    margin:18px 4px 6px;
+  }
+  .scale-labels{display:flex; justify-content:space-between; font-size:0.74rem; color:var(--ink-soft); font-family:var(--font-mono);}
+  .scale-labels span{flex:1; text-align:center;}
+  .unusual-note{font-size:0.84rem; color:var(--coral); margin-top:6px;}
+
+  /* Accordion */
+  .accordion-item{border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px; overflow:hidden;}
+  .accordion-item h3{margin:0;}
+  .accordion-trigger{
+    width:100%; text-align:left; background:var(--surface-2); border:none; cursor:pointer;
+    padding:13px 16px; font-family:var(--font-ui); font-weight:700; font-size:0.98rem; color:var(--ink);
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .accordion-trigger .chevron{transition:transform 150ms; font-size:0.85rem; color:var(--teal-dark); flex-shrink:0;}
+  .accordion-trigger[aria-expanded="true"] .chevron{transform:rotate(90deg);}
+  .accordion-panel{padding:14px 16px 18px; display:none; background:var(--surface);}
+  .accordion-panel.open{display:block;}
+  .formula{
+    font-family:var(--font-mono); background:var(--teal-soft); color:var(--teal-dark);
+    padding:9px 12px; border-radius:var(--radius-sm); display:inline-block; margin:6px 0 10px;
+    font-size:0.95rem; border:1px solid #c5dedb;
+  }
+  .callout{
+    background:var(--gold-soft); border-left:4px solid var(--gold); border-radius:8px;
+    padding:10px 12px; margin:10px 0; font-size:0.88rem;
+  }
+  .callout.warn{background:var(--coral-soft); border-left-color:var(--coral);}
+
+  /* Answer plate -- the signature dual fraction/decimal display, used everywhere */
+  .answer-plate{
+    display:flex; align-items:stretch; border:2px solid var(--gold); border-radius:var(--radius-sm);
+    overflow:hidden; max-width:340px; background:var(--surface); margin:8px 0;
+  }
+  .answer-plate .seg{flex:1; padding:10px 14px; text-align:center;}
+  .answer-plate .seg + .seg{border-left:1px dashed var(--gold);}
+  .answer-plate .seg .lbl{display:block; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px;}
+  .answer-plate .seg .val{display:block; font-family:var(--font-mono); font-size:1.25rem; font-weight:700; color:var(--teal-dark);}
+
+  /* chips / pills */
+  .chip-row{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 4px;}
+  .chip{
+    font-family:var(--font-ui); font-weight:600; font-size:0.86rem; cursor:pointer;
+    background:var(--surface); border:1.5px solid var(--border); border-radius:999px;
+    padding:7px 14px; color:var(--ink); transition:background 150ms, border-color 150ms, color 150ms;
+  }
+  .chip[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff;}
+  .chip:hover{border-color:var(--teal);}
+
+  /* table explorer */
+  .ctx-pills{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .ctx-pills button{
+    font-family:var(--font-ui); font-weight:700; font-size:0.85rem; cursor:pointer;
+    background:var(--surface-2); border:1.5px solid var(--border); border-radius:999px;
+    padding:8px 15px; color:var(--ink-soft);
+  }
+  .ctx-pills button[aria-pressed="true"]{background:var(--gold); border-color:var(--gold); color:#3a2a08;}
+
+  .table-scroll{overflow-x:auto; margin:10px 0; border-radius:var(--radius-sm); border:1px solid var(--border);}
+  table.contingency{border-collapse:collapse; width:100%; font-size:0.92rem; min-width:420px;}
+  table.contingency caption{text-align:left; font-weight:700; padding:8px 10px; background:var(--surface-2); font-size:0.85rem; color:var(--ink-soft);}
+  table.contingency th, table.contingency td{
+    padding:9px 12px; text-align:center; border:1px solid var(--border); font-family:var(--font-mono);
+  }
+  table.contingency th{background:var(--surface-2); font-family:var(--font-ui); font-weight:700; font-size:0.86rem;}
+  table.contingency td.total, table.contingency th.total{background:#EFE7D3; font-weight:700;}
+  table.contingency td.cell-hit{background:var(--gold-soft); font-weight:800; box-shadow: inset 0 0 0 2px var(--gold);}
+  table.contingency td.margin-hit{background:var(--teal-soft); font-weight:700;}
+
+  .query-builder{margin-top:14px;}
+  .qb-row{margin-bottom:12px;}
+  .qb-row > label{display:block; font-weight:700; font-size:0.84rem; color:var(--ink-soft); margin-bottom:6px;}
+  .op-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:8px;}
+  .op-btn{
+    text-align:left; font-family:var(--font-mono); font-size:0.84rem; cursor:pointer;
+    background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-sm);
+    padding:8px 10px; color:var(--ink);
+  }
+  .op-btn[aria-pressed="true"]{background:var(--teal); border-color:var(--teal); color:#fff;}
+
+  .predict-box{
+    background:var(--surface-2); border:1px dashed var(--ink-soft); border-radius:var(--radius-sm);
+    padding:12px 14px; margin-top:12px;
+  }
+  .predict-box label{font-weight:700; font-size:0.86rem; display:block; margin-bottom:6px;}
+  .predict-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  input[type="text"]{
+    font-family:var(--font-mono); font-size:0.95rem; padding:8px 10px; border:1.5px solid var(--border);
+    border-radius:var(--radius-sm); background:#fff; color:var(--ink); width:140px;
+  }
+  button.action{
+    font-family:var(--font-ui); font-weight:700; font-size:0.88rem; cursor:pointer;
+    background:var(--teal); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:9px 16px; transition:background 150ms;
+  }
+  button.action:hover{background:var(--teal-dark);}
+  button.action.secondary{background:transparent; color:var(--teal-dark); border:1.5px solid var(--teal); }
+  button.action.secondary:hover{background:var(--teal-soft);}
+  button.action:disabled{opacity:0.45; cursor:not-allowed;}
+
+  .explain-box{margin-top:12px; font-size:0.9rem; background:var(--surface-2); border-radius:var(--radius-sm); padding:10px 12px;}
+  .explain-box ul{margin:4px 0 0; padding-left:20px;}
+
+  .feedback{margin-top:8px; font-weight:700; font-size:0.9rem; padding:8px 12px; border-radius:8px;}
+  .feedback.good{background:var(--sage-soft); color:#2c4a32;}
+  .feedback.retry{background:var(--coral-soft); color:#7a2c14;}
+
+  .teacher-note{
+    margin-top:10px; background:#FFF7E0; border:1px solid var(--gold); border-radius:8px;
+    padding:9px 12px; font-size:0.85rem; color:#5c4108;
+  }
+  .teacher-note strong{color:#3a2a08;}
+
+  /* Practice */
+  .cat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:10px;}
+  .cat-card{
+    text-align:left; cursor:pointer; background:var(--surface); border:1.5px solid var(--border);
+    border-radius:var(--radius-sm); padding:13px 14px; transition:border-color 150ms, background 150ms;
+  }
+  .cat-card:hover{border-color:var(--teal);}
+  .cat-card[aria-pressed="true"]{background:var(--teal-soft); border-color:var(--teal);}
+  .cat-card .num{font-family:var(--font-mono); font-size:0.74rem; color:var(--ink-soft);}
+  .cat-card .name{font-weight:700; font-size:0.95rem; margin-top:2px; display:block;}
+
+  .problem-box{margin-top:16px;}
+  .problem-box .question{font-size:1.02rem; margin-bottom:10px;}
+  .solution-steps{margin-top:10px; font-size:0.9rem;}
+  .solution-steps ol{padding-left:20px; margin:6px 0;}
+  .solution-steps li{margin-bottom:4px; font-family:var(--font-mono); font-size:0.88rem;}
+
+  footer{
+    text-align:center; font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft);
+    padding:26px 16px 40px;
+  }
+  footer .pipe{margin:0 8px; color:var(--border);}
+
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
+
+  @media (max-width:560px){
+    .header-inner{flex-direction:column;}
+    .title-block h1{font-size:1.25rem;}
+    nav.tabs button{flex:1; font-size:0.82rem; padding:9px 8px;}
+    .answer-plate{max-width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="title-block">
+      <h1>Probability Toolkit</h1>
+      <p>Quick reference, an interactive two-way table explorer, and full mixed practice for the probability module.</p>
+      <span class="course-badge">STAT C1000 &middot; Introductory Statistics</span>
+    </div>
+    <div class="mode-toggle" role="group" aria-label="Mode">
+      <button id="modeStudentBtn" aria-pressed="true" type="button">Student Mode</button>
+      <button id="modeTeacherBtn" aria-pressed="false" type="button">Teacher Mode</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Toolkit sections">
+  <button role="tab" id="tab-learn" aria-controls="panel-learn" aria-selected="true" type="button">Concept Reference</button>
+  <button role="tab" id="tab-explorer" aria-controls="panel-explorer" aria-selected="false" type="button">Table Explorer</button>
+  <button role="tab" id="tab-practice" aria-controls="panel-practice" aria-selected="false" type="button">Mixed Practice</button>
+</nav>
+
+<div class="wrap">
+  <main>
+
+    <!-- ============ PANEL 1: CONCEPT REFERENCE ============ -->
+    <section class="panel active" id="panel-learn" role="tabpanel" aria-labelledby="tab-learn">
+      <div class="card">
+        <h2>Probability Language Scale</h2>
+        <p class="sub">Before computing, ask students to predict roughly where an event sits on this scale &mdash; it catches answers that are numerically "correct" but conceptually impossible (like a probability of 1.4).</p>
+        <div class="scale-wrap">
+          <div class="scale-bar"></div>
+          <div class="scale-labels">
+            <span>0<br>Impossible</span>
+            <span>0.25<br>Unlikely</span>
+            <span>0.5<br>Equally Likely</span>
+            <span>0.75<br>Likely</span>
+            <span>1<br>Certain</span>
+          </div>
+        </div>
+        <p class="unusual-note">An event is typically flagged as <strong>unusual</strong> when its probability is 0.05 or less.</p>
+      </div>
+
+      <div class="card">
+        <h2>Module Concepts</h2>
+        <p class="sub">Tap any heading to expand. Each section pairs the formula with a worked mini-example.</p>
+        <div id="accordionHost"></div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL 2: TABLE EXPLORER ============ -->
+    <section class="panel" id="panel-explorer" role="tabpanel" aria-labelledby="tab-explorer">
+      <div class="card">
+        <h2>Two-Way Table Explorer</h2>
+        <p class="sub">Pick a context, then choose one row category and one column category. The table highlights live to show exactly what's being counted &mdash; this is where "AND," "OR," and "GIVEN" stop being abstract.</p>
+
+        <div class="ctx-pills" id="ctxPills" role="group" aria-label="Choose a data context"></div>
+
+        <table class="contingency" id="ctxTable"></table>
+
+        <div class="query-builder">
+          <div class="qb-row">
+            <label id="rowChipsLabel">1. Choose a row category</label>
+            <div class="chip-row" id="rowChips" role="group"></div>
+          </div>
+          <div class="qb-row">
+            <label id="colChipsLabel">2. Choose a column category</label>
+            <div class="chip-row" id="colChips" role="group"></div>
+          </div>
+          <div class="qb-row">
+            <label id="opLabel">3. Choose what to find</label>
+            <div class="op-grid" id="opGrid" role="group"></div>
+          </div>
+        </div>
+
+        <div id="predictArea"></div>
+
+        <div id="resultArea" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============ PANEL 3: MIXED PRACTICE ============ -->
+    <section class="panel" id="panel-practice" role="tabpanel" aria-labelledby="tab-practice">
+      <div class="card">
+        <h2>Mixed Practice &mdash; HW 4.1&ndash;4.3 Review</h2>
+        <p class="sub">Pick a category. Numbers regenerate every time you click "New Problem," so this works for repeated retrieval practice, just like the "try a similar problem" pattern in MyOpenMath.</p>
+        <div class="cat-grid" id="catGrid" role="group" aria-label="Practice categories"></div>
+
+        <div class="problem-box" id="problemBox" aria-live="polite"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    STAT C1000 &ndash; Introductory Statistics <span class="pipe">|</span> v1.0 <span class="pipe">|</span> Built for Santa Ana College
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   STATE
+============================================================ */
+let MODE = 'student'; // 'student' | 'teacher'
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function fracStr(num, den){
+  if(den===0) return 'undefined';
+  if(num===0) return '0';
+  const g = gcd(num,den);
+  const n = num/g, d = den/g;
+  return d===1 ? String(n) : (n + '/' + d);
+}
+function decStr(num, den, places){
+  places = places===undefined ? 4 : places;
+  if(den===0) return '—';
+  return (num/den).toFixed(places);
+}
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(arr){ return arr[randInt(0,arr.length-1)]; }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=randInt(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function answerPlateHTML(num, den, places){
+  return '<div class="answer-plate">' +
+    '<div class="seg"><span class="lbl">Fraction</span><span class="val">' + escapeHtml(fracStr(num,den)) + '</span></div>' +
+    '<div class="seg"><span class="lbl">Decimal</span><span class="val">' + escapeHtml(decStr(num,den,places)) + '</span></div>' +
+  '</div>';
+}
+
+function parseUserAnswer(str){
+  if(!str) return null;
+  str = str.trim();
+  if(str === '') return null;
+  if(str.indexOf('/') !== -1){
+    const parts = str.split('/');
+    if(parts.length !== 2) return null;
+    const n = parseFloat(parts[0]), d = parseFloat(parts[1]);
+    if(isNaN(n) || isNaN(d) || d===0) return null;
+    return n/d;
+  }
+  const v = parseFloat(str.replace('%',''));
+  if(isNaN(v)) return null;
+  return str.indexOf('%') !== -1 ? v/100 : v;
+}
+
+function modeButtonsSync(){
+  document.getElementById('modeStudentBtn').setAttribute('aria-pressed', MODE==='student' ? 'true':'false');
+  document.getElementById('modeTeacherBtn').setAttribute('aria-pressed', MODE==='teacher' ? 'true':'false');
+}
+
+/* ============================================================
+   TAB NAVIGATION
+============================================================ */
+const tabs = [
+  {btn:'tab-learn', panel:'panel-learn'},
+  {btn:'tab-explorer', panel:'panel-explorer'},
+  {btn:'tab-practice', panel:'panel-practice'}
+];
+tabs.forEach(t=>{
+  document.getElementById(t.btn).addEventListener('click', ()=>{
+    tabs.forEach(o=>{
+      const isActive = o.btn===t.btn;
+      document.getElementById(o.btn).setAttribute('aria-selected', isActive?'true':'false');
+      const panelEl = document.getElementById(o.panel);
+      panelEl.classList.toggle('active', isActive);
+    });
+  });
+});
+document.getElementById('modeStudentBtn').addEventListener('click', ()=>{ MODE='student'; modeButtonsSync(); refreshExplorerResult(); });
+document.getElementById('modeTeacherBtn').addEventListener('click', ()=>{ MODE='teacher'; modeButtonsSync(); refreshExplorerResult(); });
+
+/* ============================================================
+   PANEL 1: CONCEPT REFERENCE DATA
+============================================================ */
+const CONCEPTS = [
+  {
+    title:"Foundations: Outcome, Sample Space, Event",
+    body:"<p>An <strong>outcome</strong> is one single result. The <strong>sample space</strong> is the set of every possible outcome. An <strong>event</strong> is any collection of outcomes you're interested in. When every outcome is equally likely:</p>" +
+      '<div class="formula">P(A) = n(A) / n(Sample Space)</div>' +
+      "<p><em>Example:</em> Rolling a standard die, P(rolling a number greater than 4) — the event is {5, 6}, sample space is {1,2,3,4,5,6}.</p>" +
+      answerPlateHTML(2,6)
+  },
+  {
+    title:"Complement Rule",
+    body:"<p>The complement of event A (written A<sup>c</sup>) is everything <em>not</em> in A. Since an event and its complement always account for 100% of outcomes:</p>" +
+      '<div class="formula">P(A<sup>c</sup>) = 1 &minus; P(A)</div>' +
+      "<p><em>Example:</em> If 38% of students drive to campus, what's the probability a randomly chosen student does <em>not</em> drive? P = 1 &minus; 0.38.</p>" +
+      answerPlateHTML(62,100) +
+      '<div class="callout">Complements are always mutually exclusive — a student can\'t both drive and not drive at the same time.</div>'
+  },
+  {
+    title:'"AND" vs. "OR" — What Each Word Means',
+    body:"<p>An outcome is in <strong>A AND B</strong> only if it belongs to both events. An outcome is in <strong>A OR B</strong> if it belongs to A, to B, or to both — but it only gets counted <em>once</em>.</p>" +
+      '<div class="callout warn">The #1 student error: counting an overlapping outcome twice when adding up an "OR" probability by hand.</div>' +
+      "<p><em>Example:</em> A = {1,2,3,4,5}, B = {4,5,6,7,8}. A AND B = {4,5}. A OR B = {1,2,3,4,5,6,7,8} — 4 and 5 are listed once, not twice.</p>"
+  },
+  {
+    title:"Addition Rule (for OR probabilities)",
+    body:'<div class="formula">P(A or B) = P(A) + P(B) &minus; P(A and B)</div>' +
+      "<p>Subtracting the overlap is what keeps you from double-counting. <em>Example:</em> 35% of homeowners hire yard help, 12% hire house cleaners, 9% hire both. P(yard OR house) = 0.35 + 0.12 &minus; 0.09.</p>" +
+      answerPlateHTML(38,100) +
+      '<div class="callout"><strong>Special case — Mutually Exclusive Events:</strong> if A and B can never happen together, P(A and B) = 0, so the rule simplifies to <span style="font-family:var(--font-mono)">P(A or B) = P(A) + P(B)</span>.</div>'
+  },
+  {
+    title:"Independence & The 5% Rule",
+    body:"<p>Two events are <strong>independent</strong> if the occurrence of one event does not change the probability that the other event occurs.</p>" +
+      '<div class="formula">Events A and B are independent if and only if:<br>P(A | B) = P(A) &nbsp;&nbsp;or&nbsp;&nbsp; P(B | A) = P(B)</div>' +
+      "<p><strong>Key Rules &amp; Terminology</strong></p>" +
+      "<ul>" +
+        "<li>If P(A | B) = P(A), knowing B happened does not affect A &mdash; so they are independent.</li>" +
+        "<li><strong>With Replacement:</strong> if you draw cards/marbles and put them back, the probabilities stay the same (independent trials).</li>" +
+        "<li><strong>Without Replacement:</strong> if you keep what you draw, the sample size decreases and probabilities change (dependent trials).</li>" +
+        "<li><strong>The 5% Rule of Independence:</strong> if we sample without replacement, but our sample size <em>n</em> is less than 5% of the total population <em>N</em> (n/N &lt; 0.05), we can treat the trials as independent to simplify calculations.</li>" +
+      "</ul>" +
+      '<div class="callout"><em>Example:</em> 38.2% of students at a university of 30,000+ drive to campus. Sample n = 1,000 without replacement. n/N = 1,000/30,000 &asymp; 0.033, which is less than 0.05 &mdash; so it\'s reasonable to treat each student\'s probability of driving as staying at 38.2% from trial to trial.</div>' +
+      '<div class="callout warn">Independence and mutually exclusive are <em>not</em> the same idea &mdash; see the previous section if that distinction still feels fuzzy.</div>'
+  },
+  {
+    title:"Mutually Exclusive vs. Independent — Don't Confuse These",
+    body:"<p>These describe two completely different relationships, and students mix them up constantly:</p>" +
+      "<ul><li><strong>Mutually exclusive (disjoint):</strong> the events cannot occur at the same time. (Flipping heads vs. flipping tails on one flip.)</li>" +
+      "<li><strong>Independent:</strong> knowing one event happened doesn't change the probability of the other. (Flipping heads on flip 1 vs. flip 2.)</li></ul>" +
+      '<div class="callout warn">Mutually exclusive events are actually the most extreme example of <em>dependence</em> — if A happens, P(B) instantly drops to 0. Disjoint events are (almost) never independent unless one of them has probability 0.</div>'
+  },
+  {
+    title:"Multiplication Rule (for AND probabilities)",
+    body:'<div class="formula">P(A and B) = P(A) &middot; P(B | A)</div>' +
+      "<p>If A and B are <strong>independent</strong>, P(B|A) is just P(B), so this simplifies to <span style=\"font-family:var(--font-mono)\">P(A and B) = P(A)&middot;P(B)</span>.</p>" +
+      '<div class="callout warn"><strong>With replacement</strong> → independent trials, probabilities stay the same each draw. <strong>Without replacement</strong> → dependent trials, the second probability\'s denominator (and sometimes numerator) shrinks by one. See the <em>Independence &amp; The 5% Rule</em> section above for the full picture.</div>' +
+      "<p><em>Example:</em> Bag has 3 red, 4 green (7 total). Draw two <strong>without</strong> replacement: P(red, then green) = (3/7)&middot;(4/6).</p>" +
+      answerPlateHTML(12,42)
+  },
+  {
+    title:"Conditional Probability",
+    body:'<div class="formula">P(A | B) = P(A and B) / P(B)</div>' +
+      'Read the bar as "given." Whatever follows the bar restricts your denominator — you are only looking <em>within</em> that group.' +
+      '<div class="formula">Shortcut from counts: P(A | B) = n(A and B) / n(B)</div>' +
+      "<p><em>Example:</em> Among 500 students, 324 have a piercing; 268 of those are female. P(female | pierced) = 268/324.</p>" +
+      answerPlateHTML(268,324)
+  },
+  {
+    title:"Reading a Two-Way (Contingency) Table",
+    body:"<p>Three probability types live in every two-way table:</p>" +
+      "<ul><li><strong>Marginal</strong> — one variable only: row total &divide; grand total.</li>" +
+      "<li><strong>Joint</strong> — both at once ('AND'): one cell &divide; grand total.</li>" +
+      "<li><strong>Conditional</strong> — one 'GIVEN' the other: one cell &divide; that row or column total.</li></ul>" +
+      '<div class="callout">Head to the <strong>Table Explorer</strong> tab to practice pulling all three probability types out of the same table interactively.</div>'
+  }
+];
+
+function buildAccordion(){
+  const host = document.getElementById('accordionHost');
+  host.innerHTML = '';
+  CONCEPTS.forEach((c, i)=>{
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+    const h3 = document.createElement('h3');
+    const btnId = 'acc-trigger-' + i;
+    const panelId = 'acc-panel-' + i;
+    h3.innerHTML = '<button class="accordion-trigger" id="'+btnId+'" aria-expanded="false" aria-controls="'+panelId+'" type="button">' +
+      '<span>' + escapeHtml(c.title) + '</span><span class="chevron" aria-hidden="true">&#9656;</span></button>';
+    item.appendChild(h3);
+    const panel = document.createElement('div');
+    panel.className = 'accordion-panel';
+    panel.id = panelId;
+    panel.setAttribute('role','region');
+    panel.setAttribute('aria-labelledby', btnId);
+    panel.innerHTML = c.body;
+    item.appendChild(panel);
+    host.appendChild(item);
+
+    const trigger = h3.querySelector('button');
+    trigger.addEventListener('click', ()=>{
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', expanded ? 'false':'true');
+      panel.classList.toggle('open', !expanded);
+    });
+  });
+  // open first by default
+  const firstTrigger = host.querySelector('.accordion-trigger');
+  if(firstTrigger){ firstTrigger.click(); }
+}
+
+/* ============================================================
+   PANEL 2: TABLE EXPLORER DATA
+============================================================ */
+const CONTEXTS = [
+  {
+    id:'study', title:'Studying & Quiz Results',
+    rowLabel:'Studied Last Night?', colLabel:'Passed the Quiz?',
+    rows:['Studied','Didn\'t Study'], cols:['Passed','Didn\'t Pass'],
+    data:[[28,7],[9,16]]
+  },
+  {
+    id:'commute', title:'Commute Method & Arrival Time',
+    rowLabel:'Commute Method', colLabel:'Arrived On Time?',
+    rows:['Drove','Bus','Walked'], cols:['On Time','Late'],
+    data:[[42,8],[18,22],[7,3]]
+  },
+  {
+    id:'sport', title:'Favorite Sport & Watch Style',
+    rowLabel:'Favorite Sport', colLabel:'Watch Style',
+    rows:['Basketball','Soccer','Football'], cols:['Live In Person','On Screen'],
+    data:[[15,45],[10,30],[5,45]]
+  },
+  {
+    id:'pizza', title:'Pizza Topping & Mealtime',
+    rowLabel:'Favorite Topping', colLabel:'Usually Eaten At',
+    rows:['Pepperoni','Veggie','Cheese','Other'], cols:['Lunch','Dinner'],
+    data:[[20,40],[15,15],[25,35],[10,10]]
+  }
+];
+
+let currentCtxId = CONTEXTS[0].id;
+let selRow = null, selCol = null, selOp = null; // indices / op key
+
+const OPS = [
+  {key:'row',        label:'P(Row)'},
+  {key:'col',        label:'P(Column)'},
+  {key:'and',        label:'P(Row AND Column)'},
+  {key:'or',         label:'P(Row OR Column)'},
+  {key:'rowGivenCol',label:'P(Row | Column)'},
+  {key:'colGivenRow',label:'P(Column | Row)'}
+];
+
+function getCtx(){ return CONTEXTS.find(c=>c.id===currentCtxId); }
+
+function rowTotals(ctx){ return ctx.data.map(r => r.reduce((a,b)=>a+b,0)); }
+function colTotals(ctx){
+  const tot = new Array(ctx.cols.length).fill(0);
+  ctx.data.forEach(r => r.forEach((v,i)=> tot[i]+=v));
+  return tot;
+}
+function grandTotal(ctx){ return rowTotals(ctx).reduce((a,b)=>a+b,0); }
+
+function buildCtxPills(){
+  const host = document.getElementById('ctxPills');
+  host.innerHTML = '';
+  CONTEXTS.forEach(ctx=>{
+    const b = document.createElement('button');
+    b.type='button';
+    b.textContent = ctx.title;
+    b.setAttribute('aria-pressed', ctx.id===currentCtxId ? 'true':'false');
+    b.addEventListener('click', ()=>{
+      currentCtxId = ctx.id;
+      selRow = null; selCol = null; selOp = null;
+      renderExplorer();
+    });
+    host.appendChild(b);
+  });
+}
+
+function renderTable(){
+  const ctx = getCtx();
+  const rTot = rowTotals(ctx), cTot = colTotals(ctx), grand = grandTotal(ctx);
+  let html = '<caption>' + escapeHtml(ctx.title) + '</caption><thead><tr><th scope="col">' + escapeHtml(ctx.rowLabel) + ' \\ ' + escapeHtml(ctx.colLabel) + '</th>';
+  ctx.cols.forEach((c,ci)=>{ html += '<th scope="col"'+(selCol===ci?' data-colhead="1"':'')+'>'+escapeHtml(c)+'</th>'; });
+  html += '<th scope="col" class="total">Total</th></tr></thead><tbody>';
+
+  ctx.rows.forEach((r,ri)=>{
+    html += '<tr><th scope="row"'+(selRow===ri?' data-rowhead="1"':'')+'>'+escapeHtml(r)+'</th>';
+    ctx.cols.forEach((c,ci)=>{
+      let cls = '';
+      if(selRow===ri && selCol===ci && (selOp==='and' || selOp==='rowGivenCol' || selOp==='colGivenRow' || selOp==='or')){
+        cls = 'cell-hit';
+      } else if(selOp==='or' && (selRow===ri || selCol===ci)){
+        cls = 'margin-hit';
+      } else if((selOp==='row' && selRow===ri) || (selOp==='col' && selCol===ci)){
+        cls = 'margin-hit';
+      } else if((selOp==='rowGivenCol' && selCol===ci) || (selOp==='colGivenRow' && selRow===ri)){
+        cls = 'margin-hit';
+      }
+      html += '<td'+(cls?(' class="'+cls+'"'):'')+'>'+ctx.data[ri][ci]+'</td>';
+    });
+    let rowTotCls = (selOp==='row' && selRow===ri) ? 'total margin-hit' : 'total';
+    html += '<td class="'+rowTotCls+'">'+rTot[ri]+'</td></tr>';
+  });
+
+  html += '<tr><th scope="row" class="total">Total</th>';
+  ctx.cols.forEach((c,ci)=>{
+    let colTotCls = (selOp==='col' && selCol===ci) ? 'total margin-hit' : 'total';
+    html += '<td class="'+colTotCls+'">'+cTot[ci]+'</td>';
+  });
+  html += '<td class="total">'+grand+'</td></tr></tbody>';
+
+  const tableEl = document.getElementById('ctxTable');
+  tableEl.innerHTML = html;
+  // wrap for horizontal scroll on mobile if not already wrapped
+  if(!tableEl.parentElement.classList.contains('table-scroll')){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-scroll';
+    tableEl.parentNode.insertBefore(wrapper, tableEl);
+    wrapper.appendChild(tableEl);
+  }
+}
+
+function buildChips(){
+  const ctx = getCtx();
+  document.getElementById('rowChipsLabel').textContent = '1. Choose a row category: ' + ctx.rowLabel;
+  document.getElementById('colChipsLabel').textContent = '2. Choose a column category: ' + ctx.colLabel;
+
+  const rowHost = document.getElementById('rowChips');
+  rowHost.innerHTML = '';
+  ctx.rows.forEach((r,ri)=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='chip'; b.textContent=r;
+    b.setAttribute('aria-pressed', selRow===ri ? 'true':'false');
+    b.addEventListener('click', ()=>{ selRow = (selRow===ri ? null : ri); afterSelectionChange(); });
+    rowHost.appendChild(b);
+  });
+
+  const colHost = document.getElementById('colChips');
+  colHost.innerHTML = '';
+  ctx.cols.forEach((c,ci)=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='chip'; b.textContent=c;
+    b.setAttribute('aria-pressed', selCol===ci ? 'true':'false');
+    b.addEventListener('click', ()=>{ selCol = (selCol===ci ? null : ci); afterSelectionChange(); });
+    colHost.appendChild(b);
+  });
+
+  const opHost = document.getElementById('opGrid');
+  opHost.innerHTML = '';
+  OPS.forEach(op=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='op-btn'; b.textContent=op.label;
+    b.setAttribute('aria-pressed', selOp===op.key ? 'true':'false');
+    b.addEventListener('click', ()=>{ selOp = (selOp===op.key ? null : op.key); afterSelectionChange(); });
+    opHost.appendChild(b);
+  });
+}
+
+function afterSelectionChange(){
+  renderTable();
+  buildChips(); // rebuild to sync aria-pressed states without losing listeners (cheap, table is small)
+  refreshExplorerResult();
+}
+
+function computeQuery(){
+  const ctx = getCtx();
+  if(selRow===null || selCol===null || !selOp) return null;
+  const rTot = rowTotals(ctx), cTot = colTotals(ctx), grand = grandTotal(ctx);
+  const cell = ctx.data[selRow][selCol];
+  const rowName = ctx.rows[selRow], colName = ctx.cols[selCol];
+  let num, den, label, steps;
+
+  switch(selOp){
+    case 'row':
+      num = rTot[selRow]; den = grand;
+      label = 'P(' + rowName + ')';
+      steps = ['Row total for "'+rowName+'" = '+rTot[selRow], 'Grand total = '+grand, label+' = '+rTot[selRow]+'/'+grand];
+      break;
+    case 'col':
+      num = cTot[selCol]; den = grand;
+      label = 'P(' + colName + ')';
+      steps = ['Column total for "'+colName+'" = '+cTot[selCol], 'Grand total = '+grand, label+' = '+cTot[selCol]+'/'+grand];
+      break;
+    case 'and':
+      num = cell; den = grand;
+      label = 'P(' + rowName + ' AND ' + colName + ')';
+      steps = ['The single overlapping cell = '+cell, 'Grand total = '+grand, label+' = '+cell+'/'+grand];
+      break;
+    case 'or':
+      num = rTot[selRow] + cTot[selCol] - cell; den = grand;
+      label = 'P(' + rowName + ' OR ' + colName + ')';
+      steps = ['Row total = '+rTot[selRow], 'Column total = '+cTot[selCol], 'Overlap (AND) = '+cell,
+        'Addition Rule: ('+rTot[selRow]+' + '+cTot[selCol]+' &minus; '+cell+') / '+grand];
+      break;
+    case 'rowGivenCol':
+      num = cell; den = cTot[selCol];
+      label = 'P(' + rowName + ' | ' + colName + ')';
+      steps = ['Given "'+colName+'" restricts the denominator to that column total = '+cTot[selCol],
+        'Within that column, "'+rowName+'" appears '+cell+' times', label+' = '+cell+'/'+cTot[selCol]];
+      break;
+    case 'colGivenRow':
+      num = cell; den = rTot[selRow];
+      label = 'P(' + colName + ' | ' + rowName + ')';
+      steps = ['Given "'+rowName+'" restricts the denominator to that row total = '+rTot[selRow],
+        'Within that row, "'+colName+'" appears '+cell+' times', label+' = '+cell+'/'+rTot[selRow]];
+      break;
+  }
+  return {num, den, label, steps, rowName, colName};
+}
+
+const EXPLORER_MISCONCEPTION = "The given event always restricts the denominator. Students default to the grand total out of habit — have them name the new, smaller \"universe\" out loud before dividing.";
+
+let predictionLocked = false;
+
+function renderExplorerResult(){
+  const predictArea = document.getElementById('predictArea');
+  const resultArea = document.getElementById('resultArea');
+  predictArea.innerHTML = '';
+  resultArea.innerHTML = '';
+  const q = computeQuery();
+
+  if(!q){
+    resultArea.innerHTML = '<p class="sub" style="margin-top:14px;">Select a row category, a column category, and an operation above to see the calculation.</p>';
+    return;
+  }
+
+  if(MODE==='student'){
+    predictArea.innerHTML =
+      '<div class="predict-box">' +
+        '<label for="predictInput">Before you reveal it — predict ' + escapeHtml(q.label) + '. Enter a fraction (like 3/8) or a decimal.</label>' +
+        '<div class="predict-row">' +
+          '<input type="text" id="predictInput" placeholder="e.g. 0.45 or 9/20" autocomplete="off">' +
+          '<button class="action" id="revealBtn" type="button">Lock In &amp; Reveal</button>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('revealBtn').addEventListener('click', ()=>{
+      const userVal = parseUserAnswer(document.getElementById('predictInput').value);
+      showExplorerAnswer(q, userVal);
+    });
+  } else {
+    // Teacher mode: live, no prediction gate
+    showExplorerAnswer(q, null);
+  }
+}
+function refreshExplorerResult(){ renderExplorerResult(); }
+
+function showExplorerAnswer(q, userVal){
+  const resultArea = document.getElementById('resultArea');
+  let feedbackHtml = '';
+  if(userVal !== null){
+    const correct = q.num/q.den;
+    const isClose = Math.abs(userVal-correct) < 0.001;
+    feedbackHtml = isClose
+      ? '<p class="feedback good">Nice work — your prediction matches.</p>'
+      : '<p class="feedback retry">Not quite. Compare your setup to the steps below and see where the count or denominator differs.</p>';
+  }
+  let html = '<div style="margin-top:14px;">' +
+    '<p style="font-family:var(--font-mono); font-weight:700; margin:0 0 6px;">' + escapeHtml(q.label) + '</p>' +
+    answerPlateHTML(q.num, q.den) +
+    feedbackHtml +
+    '<div class="explain-box"><strong>How it was built:</strong><ul>' +
+      q.steps.map(s=>'<li>'+s+'</li>').join('') +
+    '</ul></div>';
+  if(MODE==='teacher'){
+    html += '<div class="teacher-note"><strong>Common misconception:</strong> ' + EXPLORER_MISCONCEPTION + '</div>';
+  }
+  html += '</div>';
+  resultArea.innerHTML = html;
+}
+
+function renderExplorer(){
+  buildCtxPills();
+  renderTable();
+  buildChips();
+  refreshExplorerResult();
+}
+
+/* ============================================================
+   PANEL 3: MIXED PRACTICE
+============================================================ */
+const SUIT_SYMBOLS = ['♠','♥','♦','♣'];
+const RANKS = [2,3,4,5,6,7,8,9,10,'J','Q','K','A'];
+function buildDeck(){
+  const deck = [];
+  SUIT_SYMBOLS.forEach(suit=>{
+    RANKS.forEach(rank=>{
+      deck.push({
+        rank, suit,
+        color: (suit==='♥'||suit==='♦') ? 'Red' : 'Black'
+      });
+    });
+  });
+  return deck;
+}
+const CARD_EVENTS = [
+  {label:'a King', group:'rank', test:c=>c.rank==='K'},
+  {label:'a Queen', group:'rank', test:c=>c.rank==='Q'},
+  {label:'an Ace', group:'rank', test:c=>c.rank==='A'},
+  {label:'a Heart', group:'suit', test:c=>c.suit==='♥'},
+  {label:'a Spade', group:'suit', test:c=>c.suit==='♠'},
+  {label:'a Diamond', group:'suit', test:c=>c.suit==='♦'},
+  {label:'a Club', group:'suit', test:c=>c.suit==='♣'},
+  {label:'a Red card', group:'color', test:c=>c.color==='Red'},
+  {label:'a face card (J, Q, or K)', group:'face', test:c=>['J','Q','K'].includes(c.rank)},
+  {label:'an even-numbered card (2, 4, 6, 8, or 10)', group:'even', test:c=>[2,4,6,8,10].includes(c.rank)}
+];
+
+const PRACTICE_CATEGORIES = [
+  {
+    id:'terminology', name:'Terminology & Basic Probability',
+    misconception:'Students often divide by the number of categories instead of the number of individual items — have them state n(event) and n(sample space) as two separate counts before dividing.',
+    generate(){
+      const palette = shuffle(['red','blue','green','yellow','purple']);
+      const colors = palette.slice(0,3);
+      const counts = colors.map(()=>randInt(4,12));
+      const total = counts.reduce((a,b)=>a+b,0);
+      const targetIdx = randInt(0,2);
+      const q = 'A jar contains ' + counts.map((c,i)=>c+' '+colors[i]).join(', ') + ' marbles. If you draw one marble at random, what is P(' + colors[targetIdx] + ')?';
+      return {
+        prompt:q, num:counts[targetIdx], den:total,
+        steps:['Total marbles = '+counts.join(' + ')+' = '+total,
+          'P('+colors[targetIdx]+') = '+counts[targetIdx]+'/'+total]
+      };
+    }
+  },
+  {
+    id:'complement', name:'Complement Rule',
+    misconception:'Watch for students subtracting from 0.5 (or 50) instead of 1 (or 100) — anchor it with "the two pieces always make a whole."',
+    generate(){
+      const contexts = [
+        'of adults say they own a smartphone',
+        'of students pass the course on their first attempt',
+        'of drivers wear a seatbelt every time they drive',
+        'of customers say they would recommend the store',
+        'of voters say they plan to vote in the next election'
+      ];
+      const p = randInt(15,85);
+      const ctx = pick(contexts);
+      const q = 'Suppose ' + p + '% ' + ctx + '. If one person is selected at random, what is the probability that this is NOT true for them?';
+      return {
+        prompt:q, num:100-p, den:100,
+        steps:['P(event) = '+p+'/100', 'P(not event) = 1 &minus; '+p+'/100 = '+(100-p)+'/100']
+      };
+    }
+  },
+  {
+    id:'cards', name:'AND / OR With a Deck of Cards',
+    misconception:'The most common error is double-counting the overlap card — have students name the overlap out loud before subtracting it.',
+    generate(){
+      const deck = buildDeck();
+      let A, B;
+      do{
+        const pickTwo = shuffle(CARD_EVENTS).slice(0,2);
+        A = pickTwo[0]; B = pickTwo[1];
+      } while(A.group===B.group);
+      const cA = deck.filter(A.test).length;
+      const cB = deck.filter(B.test).length;
+      const cAB = deck.filter(c=>A.test(c)&&B.test(c)).length;
+      const cOR = deck.filter(c=>A.test(c)||B.test(c)).length;
+      const q = 'You draw one card from a standard 52-card deck. What is the probability of drawing ' + A.label + ' or ' + B.label + '?';
+      return {
+        prompt:q, num:cOR, den:52,
+        steps:['n('+A.label+') = '+cA, 'n('+B.label+') = '+cB, 'n(both at once) = '+cAB,
+          'Addition Rule: ('+cA+' + '+cB+' &minus; '+cAB+') / 52 = '+cOR+'/52']
+      };
+    }
+  },
+  {
+    id:'addition', name:'Addition Rule With Percentages',
+    misconception:"Students often forget to subtract P(A and B) entirely, especially when the word 'or' is implied rather than stated outright.",
+    generate(){
+      const scenarios = [
+        ['subscribe to a streaming service','also have a cable TV subscription'],
+        ['have taken an online course','also work a part-time job'],
+        ['own a car','also use public transit at least once a week'],
+        ['follow a sports team closely','also follow a sports league on social media']
+      ];
+      const s = pick(scenarios);
+      const p = randInt(25,55);
+      const q2 = randInt(15,40);
+      const maxOverlap = Math.min(p,q2) - 3;
+      const mutuallyExclusive = Math.random() < 0.25;
+      const overlap = mutuallyExclusive ? 0 : (maxOverlap > 2 ? randInt(2,maxOverlap) : 2);
+      const ans = p + q2 - overlap;
+      let prompt = 'In a survey, ' + p + '% of respondents ' + s[0] + '. ' + q2 + '% ' + s[1] + '.';
+      prompt += mutuallyExclusive
+        ? ' No one in the survey falls into both groups (they are mutually exclusive).'
+        : ' ' + overlap + '% of respondents fall into both groups.';
+      prompt += ' What is the probability a randomly chosen respondent falls into at least one of these groups (A or B)?';
+      return {
+        prompt, num:ans, den:100,
+        steps: mutuallyExclusive
+          ? ['Mutually exclusive: P(A and B) = 0', 'P(A or B) = '+p+'/100 + '+q2+'/100 = '+ans+'/100']
+          : ['P(A and B) = '+overlap+'/100', 'P(A or B) = ('+p+' + '+q2+' &minus; '+overlap+')/100 = '+ans+'/100']
+      };
+    }
+  },
+  {
+    id:'independence', name:'Independence Check (From a Table)',
+    misconception:'Students assume independence just because a scenario "feels" random — anchor it by always comparing P(A) to P(A given B) numerically.',
+    generate(){
+      const scenarios = [
+        {row:['Owns a Car','No Car'], col:['Part-Time Job','No Job']},
+        {row:['Took the Morning Section','Took the Evening Section'], col:['Passed the Exam','Did Not Pass']},
+        {row:['Streams Music Daily','Does Not Stream Daily'], col:['Paid Subscription','Free Account Only']}
+      ];
+      const s = pick(scenarios);
+      const a11=randInt(5,30), a12=randInt(5,30), a21=randInt(5,30), a22=randInt(5,30);
+      const rowTot1=a11+a12, colTot1=a11+a21, grand=a11+a12+a21+a22;
+      const pA = rowTot1/grand;
+      const pAgivenB = a11/colTot1;
+      const q = 'A survey crosses "' + s.row[0] + '" / "' + s.row[1] + '" with "' + s.col[0] + '" / "' + s.col[1] + '":<br>' +
+        '<span style="font-family:var(--font-mono); font-size:0.85rem;">' +
+        s.row[0]+' &amp; '+s.col[0]+': '+a11+' &nbsp;|&nbsp; '+s.row[0]+' &amp; '+s.col[1]+': '+a12+'<br>' +
+        s.row[1]+' &amp; '+s.col[0]+': '+a21+' &nbsp;|&nbsp; '+s.row[1]+' &amp; '+s.col[1]+': '+a22 +
+        '</span><br>Find P(' + s.row[0] + ' | ' + s.col[0] + ').';
+      const closeEnough = Math.abs(pA-pAgivenB) < 0.01;
+      return {
+        prompt:q, num:a11, den:colTot1,
+        steps:['Grand total = '+grand,
+          'P('+s.row[0]+') (no condition) = '+rowTot1+'/'+grand+' &asymp; '+pA.toFixed(4),
+          'P('+s.row[0]+' | '+s.col[0]+') = '+a11+'/'+colTot1+' &asymp; '+pAgivenB.toFixed(4),
+          closeEnough
+            ? 'These are close — knowing "'+s.col[0]+'" barely shifted the probability, so treat as roughly independent.'
+            : 'These differ noticeably — knowing "'+s.col[0]+'" changed the probability, so the events are dependent.']
+      };
+    }
+  },
+  {
+    id:'multiplication', name:'Multiplication Rule: With vs. Without Replacement',
+    misconception:'"Without replacement" is the single biggest stumbling block. Have students say out loud how many total items remain before computing the second probability.',
+    generate(){
+      const colorSet = shuffle(['red','blue','green']).slice(0,2);
+      const counts = {};
+      colorSet.forEach(c=> counts[c] = randInt(4,9));
+      const total = colorSet.reduce((s,c)=>s+counts[c],0);
+      const sameColor = Math.random() < 0.5;
+      const colorFirst = colorSet[0];
+      const colorSecond = sameColor ? colorFirst : colorSet[1];
+      const withReplacement = Math.random() < 0.5;
+      const setup = 'A bag has ' + colorSet.map(c=>counts[c]+' '+c).join(' and ') + ' marbles (' + total + ' total). You draw one marble, ' +
+        (withReplacement ? 'replace it, then draw a second marble.' : 'do NOT replace it, then draw a second marble.');
+      const q = setup + ' What is the probability the first marble is ' + colorFirst + ' AND the second is ' + colorSecond + '?';
+      let num, den, steps;
+      if(withReplacement){
+        num = counts[colorFirst]*counts[colorSecond];
+        den = total*total;
+        steps = ['With replacement, both draws use the full bag of '+total,
+          'P(1st '+colorFirst+') = '+counts[colorFirst]+'/'+total,
+          'P(2nd '+colorSecond+') = '+counts[colorSecond]+'/'+total,
+          'Multiply: ('+counts[colorFirst]+'/'+total+') &times; ('+counts[colorSecond]+'/'+total+') = '+num+'/'+den];
+      } else {
+        const secondCount = sameColor ? counts[colorFirst]-1 : counts[colorSecond];
+        const secondTotal = total-1;
+        num = counts[colorFirst]*secondCount;
+        den = total*secondTotal;
+        steps = ['Without replacement, the bag shrinks to '+secondTotal+' for the second draw',
+          'P(1st '+colorFirst+') = '+counts[colorFirst]+'/'+total,
+          'P(2nd '+colorSecond+' | 1st was '+colorFirst+') = '+secondCount+'/'+secondTotal,
+          'Multiply: ('+counts[colorFirst]+'/'+total+') &times; ('+secondCount+'/'+secondTotal+') = '+num+'/'+den];
+      }
+      return {prompt:q, num, den, steps};
+    }
+  },
+  {
+    id:'condtable', name:'Conditional Probability — Quick Table Drill',
+    misconception:'The "given" event sets the denominator. If students reach for the grand total by default, ask them which group they were told to stay inside of.',
+    generate(){
+      const scenarios = [
+        {row:['Brought Lunch','Bought Lunch'], col:['Skipped Vending Machine','Used Vending Machine']},
+        {row:['Watched the Lecture Video','Did Not Watch'], col:['Submitted On Time','Submitted Late']},
+        {row:['First-Year Student','Returning Student'], col:['Used Tutoring Center','Did Not Use Tutoring Center']}
+      ];
+      const s = pick(scenarios);
+      const a11=randInt(4,20), a12=randInt(4,20), a21=randInt(4,20), a22=randInt(4,20);
+      const rowTot1=a11+a12, colTot1=a11+a21, rowTot2=a21+a22;
+      const askColGivenRow = Math.random() < 0.5;
+      let q, num, den, steps;
+      const table = '<span style="font-family:var(--font-mono); font-size:0.85rem;">' +
+        s.row[0]+' &amp; '+s.col[0]+': '+a11+' &nbsp;|&nbsp; '+s.row[0]+' &amp; '+s.col[1]+': '+a12+'<br>' +
+        s.row[1]+' &amp; '+s.col[0]+': '+a21+' &nbsp;|&nbsp; '+s.row[1]+' &amp; '+s.col[1]+': '+a22 +
+        '</span>';
+      if(askColGivenRow){
+        q = table + '<br>Find P(' + s.col[0] + ' | ' + s.row[0] + ').';
+        num = a11; den = rowTot1;
+        steps = ['"Given '+s.row[0]+'" restricts you to that row total = '+rowTot1,
+          'Within that row, "'+s.col[0]+'" happens '+a11+' times',
+          'P = '+a11+'/'+rowTot1];
+      } else {
+        q = table + '<br>Find P(' + s.row[0] + ' | ' + s.col[0] + ').';
+        num = a11; den = colTot1;
+        steps = ['"Given '+s.col[0]+'" restricts you to that column total = '+colTot1,
+          'Within that column, "'+s.row[0]+'" happens '+a11+' times',
+          'P = '+a11+'/'+colTot1];
+      }
+      return {prompt:q, num, den, steps};
+    }
+  },
+  {
+    id:'pairpick', name:'Challenge: Picking Two At Once',
+    misconception:'Without combinations, the easy slip is forgetting that "one X and one Y" can happen in two different orders (X-then-Y or Y-then-X), so both paths need to be added — while "both X" only ever has one path, since the two items are identical.',
+    generate(){
+      const colorPalette = shuffle(['white','black','pink','blue','tan']);
+      const colors = colorPalette.slice(0,3);
+      const counts = colors.map(()=>randInt(4,15));
+      const total = counts.reduce((a,b)=>a+b,0);
+      const wantBoth = Math.random() < 0.5;
+      const den = total*(total-1);
+      let q, num, steps;
+      if(wantBoth){
+        const idx = randInt(0,2);
+        const cX = counts[idx];
+        num = cX*(cX-1);
+        q = 'A drawer has ' + counts.map((c,i)=>c+' '+colors[i]).join(', ') + ' loose socks (' + total + ' total). If you grab two socks at random at the same time, what is the probability you get BOTH ' + colors[idx] + '?';
+        steps = ['Treat this as two draws without replacement, one at a time &mdash; same Multiplication Rule as before.',
+          'P(1st is '+colors[idx]+') = '+cX+'/'+total,
+          'P(2nd is '+colors[idx]+' | 1st was '+colors[idx]+') = '+(cX-1)+'/'+(total-1)+' &mdash; one fewer '+colors[idx]+' sock, one fewer sock overall',
+          'Multiplication Rule: ('+cX+'/'+total+') &times; ('+(cX-1)+'/'+(total-1)+') = '+num+'/'+den];
+      } else {
+        const idxs = shuffle([0,1,2]).slice(0,2);
+        const cX = counts[idxs[0]], cY = counts[idxs[1]];
+        const pathVal = cX*cY;
+        num = pathVal*2;
+        q = 'A drawer has ' + counts.map((c,i)=>c+' '+colors[i]).join(', ') + ' loose socks (' + total + ' total). If you grab two socks at random at the same time, what is the probability you get one ' + colors[idxs[0]] + ' AND one ' + colors[idxs[1]] + '?';
+        steps = ['"One of each" can happen in two orders &mdash; '+colors[idxs[0]]+' first or '+colors[idxs[1]]+' first. Work out each order with the Multiplication Rule, then add them with the Addition Rule (the two orders can\'t both happen).',
+          'Order 1, '+colors[idxs[0]]+' then '+colors[idxs[1]]+': ('+cX+'/'+total+') &times; ('+cY+'/'+(total-1)+') = '+pathVal+'/'+den,
+          'Order 2, '+colors[idxs[1]]+' then '+colors[idxs[0]]+': ('+cY+'/'+total+') &times; ('+cX+'/'+(total-1)+') = '+pathVal+'/'+den,
+          'Add the two orders: '+pathVal+'/'+den+' + '+pathVal+'/'+den+' = '+num+'/'+den];
+      }
+      return {prompt:q, num, den, steps};
+    }
+  }
+];
+
+let currentCategoryId = null;
+let currentProblem = null;
+let solutionShown = false;
+
+function buildCategoryGrid(){
+  const host = document.getElementById('catGrid');
+  host.innerHTML = '';
+  PRACTICE_CATEGORIES.forEach((cat, i)=>{
+    const b = document.createElement('button');
+    b.type='button'; b.className='cat-card';
+    b.setAttribute('aria-pressed', cat.id===currentCategoryId ? 'true':'false');
+    b.innerHTML = '<span class="num">0'+(i+1)+'</span><span class="name">'+escapeHtml(cat.name)+'</span>';
+    b.addEventListener('click', ()=>{
+      currentCategoryId = cat.id;
+      newProblem();
+      buildCategoryGrid();
+    });
+    host.appendChild(b);
+  });
+}
+
+function newProblem(){
+  const cat = PRACTICE_CATEGORIES.find(c=>c.id===currentCategoryId);
+  if(!cat) return;
+  currentProblem = cat.generate();
+  solutionShown = false;
+  renderProblem();
+}
+
+function renderProblem(){
+  const cat = PRACTICE_CATEGORIES.find(c=>c.id===currentCategoryId);
+  const box = document.getElementById('problemBox');
+  if(!cat || !currentProblem){ box.innerHTML=''; return; }
+
+  let html = '<div class="card" style="margin-bottom:0;">' +
+    '<h2 style="font-size:1.02rem;">' + escapeHtml(cat.name) + '</h2>' +
+    '<div class="question">' + currentProblem.prompt + '</div>' +
+    '<div class="predict-row">' +
+      '<input type="text" id="practiceInput" placeholder="e.g. 0.45 or 9/20" autocomplete="off">' +
+      '<button class="action" id="checkBtn" type="button">Check Answer</button>' +
+      '<button class="action secondary" id="solutionBtn" type="button">' + (solutionShown ? 'Hide Solution' : 'Show Solution') + '</button>' +
+      '<button class="action secondary" id="newProblemBtn" type="button">New Problem</button>' +
+    '</div>' +
+    '<div id="practiceFeedback"></div>';
+
+  if(solutionShown){
+    html += '<div class="solution-steps"><strong>Solution:</strong><ol>' +
+      currentProblem.steps.map(s=>'<li>'+s+'</li>').join('') +
+      '</ol>' + answerPlateHTML(currentProblem.num, currentProblem.den) + '</div>';
+    if(MODE==='teacher'){
+      html += '<div class="teacher-note"><strong>Common misconception:</strong> ' + cat.misconception + '</div>';
+    }
+  }
+  html += '</div>';
+  box.innerHTML = html;
+
+  document.getElementById('checkBtn').addEventListener('click', checkPracticeAnswer);
+  document.getElementById('practiceInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPracticeAnswer(); });
+  document.getElementById('solutionBtn').addEventListener('click', ()=>{ solutionShown = !solutionShown; renderProblem(); });
+  document.getElementById('newProblemBtn').addEventListener('click', newProblem);
+}
+
+function checkPracticeAnswer(){
+  const val = parseUserAnswer(document.getElementById('practiceInput').value);
+  const fb = document.getElementById('practiceFeedback');
+  if(val===null){
+    fb.innerHTML = '<p class="feedback retry">Enter a decimal (like 0.45) or a fraction (like 9/20).</p>';
+    return;
+  }
+  const correct = currentProblem.num/currentProblem.den;
+  const isClose = Math.abs(val-correct) < 0.001;
+  fb.innerHTML = isClose
+    ? '<p class="feedback good">Correct! Click "Show Solution" to compare your steps, or grab a new problem.</p>'
+    : '<p class="feedback retry">Not quite yet — click "Show Solution" to see where the setup differs from yours.</p>';
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+buildAccordion();
+renderExplorer();
+buildCategoryGrid();
+
+})();
+</script>
+</body>
+</html>
